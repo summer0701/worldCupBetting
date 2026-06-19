@@ -1,8 +1,8 @@
 const APPS_SCRIPT_URL = normalizeAppsScriptUrl(import.meta.env.VITE_APPS_SCRIPT_URL || '');
 let jsonpRequestId = 0;
 
-function normalizeAppsScriptUrl(url) {
-  return url.trim().replace('/macros/u/1/s/', '/macros/s/');
+export function normalizeAppsScriptUrl(url) {
+  return String(url || '').trim().replace(/\/macros\/u\/\d+\/s\//, '/macros/s/');
 }
 
 async function call(action, params = {}) {
@@ -39,7 +39,9 @@ function callJsonp(action, params = {}) {
 
     script.onerror = () => {
       cleanup();
-      reject(new Error('Apps Script API를 불러오지 못했습니다. 배포 URL을 확인하세요.'));
+      reject(new Error(
+        'Apps Script API를 불러오지 못했습니다. Web App 배포 권한을 "Anyone"으로 설정했는지, 배포 URL이 https://script.google.com/macros/s/.../exec 형식인지 확인하세요.',
+      ));
     };
 
     const url = new URL(APPS_SCRIPT_URL);

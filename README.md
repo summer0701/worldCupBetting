@@ -55,6 +55,23 @@ npm install
 npm run dev
 ```
 
+## GitHub Pages 배포
+
+`.github/workflows/deploy-pages.yml`가 `main` 브랜치에 push될 때 자동으로 `dist`를 빌드해 GitHub Pages에 배포합니다.
+
+1. GitHub 저장소의 `Settings > Pages`에서 Source를 `GitHub Actions`로 설정합니다.
+2. `Settings > Secrets and variables > Actions`에 Repository secret을 추가합니다.
+   - `VITE_APPS_SCRIPT_URL`: Apps Script Web App 배포 URL
+3. `main` 브랜치에 push하거나 Actions 탭에서 `Deploy to GitHub Pages` 워크플로를 수동 실행합니다.
+
+이 저장소가 기본 GitHub Pages 주소로 배포되면 URL은 보통 다음 형식입니다.
+
+```text
+https://summer0701.github.io/worldCupBetting/
+```
+
+GitHub Pages에서 `/my`, `/admin` 같은 SPA 경로를 직접 열어도 동작하도록 빌드 시 `dist/404.html`을 자동 생성합니다.
+
 ## 테스트
 
 렌더링, 브라우저, E2E, 스냅샷 테스트는 실행하지 않습니다. 계산 유틸만 대상으로 한 순수 단위 테스트를 실행합니다.

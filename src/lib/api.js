@@ -1,5 +1,9 @@
-const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
+const APPS_SCRIPT_URL = normalizeAppsScriptUrl(import.meta.env.VITE_APPS_SCRIPT_URL || '');
 let jsonpRequestId = 0;
+
+function normalizeAppsScriptUrl(url) {
+  return url.trim().replace('/macros/u/1/s/', '/macros/s/');
+}
 
 async function call(action, params = {}) {
   if (!APPS_SCRIPT_URL) {

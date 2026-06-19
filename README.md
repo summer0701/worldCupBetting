@@ -62,6 +62,7 @@ npm run dev
 1. GitHub 저장소의 `Settings > Pages`에서 Source를 `GitHub Actions`로 설정합니다.
 2. `Settings > Secrets and variables > Actions`에 Repository secret을 추가합니다.
    - `VITE_APPS_SCRIPT_URL`: Apps Script Web App 배포 URL
+   - URL은 `https://script.google.com/macros/s/.../exec` 형식이어야 합니다. 브라우저에서 복사한 `https://script.google.com/macros/u/1/s/.../exec` 형식은 사용하지 않습니다.
 3. `main` 브랜치에 push하거나 Actions 탭에서 `Deploy to GitHub Pages` 워크플로를 수동 실행합니다.
 
 이 저장소가 기본 GitHub Pages 주소로 배포되면 URL은 보통 다음 형식입니다.

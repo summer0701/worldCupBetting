@@ -1,25 +1,51 @@
 const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
+let jsonpRequestId = 0;
 
 async function call(action, params = {}) {
   if (!APPS_SCRIPT_URL) {
     throw new Error('VITE_APPS_SCRIPT_URL이 설정되지 않았습니다. .env 파일을 확인하세요.');
   }
-  const url = new URL(APPS_SCRIPT_URL);
-  url.searchParams.set('action', action);
 
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(params),
+  return callJsonp(action, params);
+}
+
+function callJsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `__worldCupPredictionApi_${Date.now()}_${jsonpRequestId++}`;
+    const script = document.createElement('script');
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('Apps Script API 응답 시간이 초과되었습니다.'));
+    }, 15000);
+
+    function cleanup() {
+      window.clearTimeout(timeoutId);
+      script.remove();
+      delete window[callbackName];
+    }
+
+    window[callbackName] = (data) => {
+      cleanup();
+      if (data?.error) {
+        reject(new Error(data.error));
+        return;
+      }
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Apps Script API를 불러오지 못했습니다. 배포 URL을 확인하세요.'));
+    };
+
+    const url = new URL(APPS_SCRIPT_URL);
+    url.searchParams.set('action', action);
+    url.searchParams.set('payload', JSON.stringify(params));
+    url.searchParams.set('callback', callbackName);
+    script.src = url.toString();
+
+    document.head.appendChild(script);
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
-
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data;
 }
 
 export const api = {

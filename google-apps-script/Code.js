@@ -15,35 +15,49 @@ function doPost(e) {
       ? JSON.parse(e.postData.contents)
       : {};
 
-    setupSheets();
-
-    const handlers = {
-      getMatches,
-      createMatch,
-      updateMatchResult,
-      submitPrediction,
-      getPredictionsByUser,
-      getMatchPool,
-      settleMatch,
-      getUsers,
-    };
-
-    if (!handlers[action]) {
-      throw new Error('지원하지 않는 action입니다.');
-    }
-
-    const result = handlers[action](payload);
-    return jsonResponse(result);
+    return jsonResponse(handleAction(action, payload));
   } catch (error) {
     return jsonResponse({ error: error.message });
   }
 }
 
-function doGet() {
-  return jsonResponse({
-    ok: true,
-    message: 'World Cup virtual points prediction API',
-  });
+function doGet(e) {
+  try {
+    const params = (e && e.parameter) || {};
+    const action = params.action || '';
+    const callback = params.callback || '';
+    const payload = params.payload ? JSON.parse(params.payload) : {};
+    const result = action
+      ? handleAction(action, payload)
+      : { ok: true, message: 'World Cup virtual points prediction API' };
+
+    return callback ? jsonpResponse(callback, result) : jsonResponse(result);
+  } catch (error) {
+    const callback = e && e.parameter && e.parameter.callback;
+    const result = { error: error.message };
+    return callback ? jsonpResponse(callback, result) : jsonResponse(result);
+  }
+}
+
+function handleAction(action, payload) {
+  setupSheets();
+
+  const handlers = {
+    getMatches,
+    createMatch,
+    updateMatchResult,
+    submitPrediction,
+    getPredictionsByUser,
+    getMatchPool,
+    settleMatch,
+    getUsers,
+  };
+
+  if (!handlers[action]) {
+    throw new Error('지원하지 않는 action입니다.');
+  }
+
+  return handlers[action](payload);
 }
 
 function setupSheets() {
@@ -374,4 +388,15 @@ function jsonResponse(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function jsonpResponse(callback, data) {
+  const safeCallback = String(callback).replace(/[^\w.$]/g, '');
+  if (!safeCallback) {
+    return jsonResponse({ error: 'callback 값이 올바르지 않습니다.' });
+  }
+
+  return ContentService
+    .createTextOutput(`${safeCallback}(${JSON.stringify(data)});`)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }

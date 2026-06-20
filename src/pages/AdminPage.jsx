@@ -100,6 +100,28 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDeleteMatch(match) {
+    setError('');
+    setMsg('');
+    const confirmed = window.confirm(
+      `${match.home_team} vs ${match.away_team} 경기를 삭제하시겠습니까?\n제출된 예측이 있다면 사용한 포인트가 환불됩니다.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await api.deleteMatch(match.id, savedPw);
+      const refundedCount = res.refundedPredictionsCount || 0;
+      setMsg(
+        refundedCount > 0
+          ? `경기가 삭제되었고 ${refundedCount}명의 예측 포인트가 환불되었습니다.`
+          : '경기가 삭제되었습니다.',
+      );
+      loadAll();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function handleSettle(matchId) {
     setError('');
     setMsg('');
@@ -230,7 +252,7 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       <tr>
-                        <td>홈 승</td>
+                        <td>{m.home_team}</td>
                         <td>{(pool.home || 0).toLocaleString()} pts</td>
                         <td>{oddsHome !== null ? `${oddsHome.toFixed(2)}배` : '-'}</td>
                       </tr>
@@ -240,7 +262,7 @@ export default function AdminPage() {
                         <td>{oddsDraw !== null ? `${oddsDraw.toFixed(2)}배` : '-'}</td>
                       </tr>
                       <tr>
-                        <td>원정 승</td>
+                        <td>{m.away_team}</td>
                         <td>{(pool.away || 0).toLocaleString()} pts</td>
                         <td>{oddsAway !== null ? `${oddsAway.toFixed(2)}배` : '-'}</td>
                       </tr>
@@ -263,7 +285,7 @@ export default function AdminPage() {
                           className={`btn-result ${m.result === r ? 'active' : ''}`}
                           onClick={() => handleSetResult(m.id, r)}
                         >
-                          {r === 'home' ? '홈 승' : r === 'draw' ? '무승부' : '원정 승'}
+                          {r === 'home' ? m.home_team : r === 'draw' ? '무승부' : m.away_team}
                         </button>
                       ))}
                     </div>
@@ -289,6 +311,13 @@ export default function AdminPage() {
                         정산 실행
                       </button>
                     )}
+
+                    <button
+                      className="btn-delete-match"
+                      onClick={() => handleDeleteMatch(m)}
+                    >
+                      경기 삭제
+                    </button>
                   </div>
                 )}
 

@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { CHOICES, EMPTY_POOL, calcOdds, calcPoolTotal, normalizePool } from '../lib/payout';
 
-const CHOICE_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
 const STATUS_LABEL = {
   scheduled: '예정',
   locked: '마감',
   finished: '종료',
   settled: '정산완료',
 };
-const RESULT_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
 
 export default function MatchCard({ match, userName, onPredicted }) {
   const [pool, setPool] = useState({ home: 0, draw: 0, away: 0 });
@@ -61,6 +59,11 @@ export default function MatchCard({ match, userName, onPredicted }) {
   }
 
   const total = calcPoolTotal(pool);
+  const choiceLabel = {
+    home: match.home_team,
+    draw: '무승부',
+    away: match.away_team,
+  };
 
   return (
     <div className={`match-card ${isLocked ? 'locked' : ''}`}>
@@ -70,7 +73,7 @@ export default function MatchCard({ match, userName, onPredicted }) {
         </span>
         {match.result && (
           <span className="result-badge">
-            결과: {RESULT_LABEL[match.result]}
+            결과: {choiceLabel[match.result]}
           </span>
         )}
       </div>
@@ -109,7 +112,7 @@ export default function MatchCard({ match, userName, onPredicted }) {
                   className={`choice-btn choice-${c} ${selected === c ? 'active' : ''}`}
                   onClick={() => setSelected(c)}
                 >
-                  <span className="choice-label">{CHOICE_LABEL[c]}</span>
+                  <span className="choice-label">{choiceLabel[c]}</span>
                   <span className="choice-odds">
                     {odds !== null ? `${odds.toFixed(2)}배` : '-'}
                   </span>

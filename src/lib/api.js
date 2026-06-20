@@ -58,6 +58,8 @@ export const api = {
   getMatches: () => call('getMatches'),
   createMatch: (payload, adminPassword) =>
     call('createMatch', { ...payload, adminPassword }),
+  deleteMatch: (matchId, adminPassword) =>
+    call('deleteMatch', { matchId, adminPassword }),
   updateMatchStatus: (matchId, status, adminPassword) =>
     call('createMatch', { id: matchId, status, _update: true, adminPassword }),
   updateMatchResult: (matchId, result, adminPassword) =>

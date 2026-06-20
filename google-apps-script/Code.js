@@ -7,7 +7,7 @@ const SHEETS = {
 
 const CHOICES = ['home', 'draw', 'away'];
 const MATCH_STATUSES = ['scheduled', 'locked', 'finished'];
-const DEFAULT_STARTING_POINTS = 1000;
+const DEFAULT_STARTING_POINTS = 10000;
 
 function doPost(e) {
   try {

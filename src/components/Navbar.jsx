@@ -17,6 +17,10 @@ export default function Navbar() {
             <span className="nav-icon">♙</span>
             내 예측
           </NavLink>
+          <NavLink to="/ranking" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">♛</span>
+            순위
+          </NavLink>
           <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active nav-link-admin' : 'nav-link nav-link-admin'}>
             <span className="nav-icon">⬡</span>
             관리자

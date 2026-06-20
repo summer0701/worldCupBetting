@@ -54,6 +54,7 @@ function handleAction(action, payload) {
     getMatchPool,
     settleMatch,
     getUsers,
+    getRankings,
     grantUserPoints,
   };
 
@@ -358,6 +359,72 @@ function getUsers(payload) {
   return {
     users: readRows('users').sort((a, b) => Number(b.points) - Number(a.points)),
   };
+}
+
+function getRankings() {
+  const users = readRows('users');
+  const predictions = readRows('predictions');
+  const matchesById = toMap(readRows('matches'), 'id');
+  const rankingsByUser = {};
+
+  users.forEach((user) => {
+    rankingsByUser[user.user_name] = {
+      user_name: user.user_name,
+      points: Number(user.points) || 0,
+      correct_count: 0,
+      participation_count: 0,
+      settled_count: 0,
+      accuracy: 0,
+    };
+  });
+
+  predictions.forEach((prediction) => {
+    const userName = prediction.user_name;
+    const match = matchesById[prediction.match_id] || {};
+
+    if (!rankingsByUser[userName]) {
+      rankingsByUser[userName] = {
+        user_name: userName,
+        points: 0,
+        correct_count: 0,
+        participation_count: 0,
+        settled_count: 0,
+        accuracy: 0,
+      };
+    }
+
+    const ranking = rankingsByUser[userName];
+    ranking.participation_count += 1;
+
+    if (!CHOICES.includes(match.result)) {
+      return;
+    }
+
+    ranking.settled_count += 1;
+    if (prediction.choice === match.result) {
+      ranking.correct_count += 1;
+    }
+  });
+
+  const rankings = Object.keys(rankingsByUser)
+    .map((userName) => {
+      const ranking = rankingsByUser[userName];
+      ranking.accuracy = ranking.settled_count > 0
+        ? (ranking.correct_count / ranking.settled_count) * 100
+        : 0;
+      return ranking;
+    })
+    .sort((a, b) => {
+      return (
+        b.points - a.points ||
+        b.correct_count - a.correct_count ||
+        b.accuracy - a.accuracy ||
+        a.user_name.localeCompare(b.user_name)
+      );
+    })
+    .map((ranking, index) => Object.assign({ rank: index + 1 }, ranking));
+
+  return { rankings };
 }
 
 function grantUserPoints(payload) {

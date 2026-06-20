@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import DisclaimerBanner from '../components/DisclaimerBanner';
 
 const CHOICE_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
 const RESULT_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
@@ -53,8 +52,6 @@ export default function MyPage() {
 
   return (
     <div className="page">
-      <DisclaimerBanner />
-
       <div className="hero">
         <h1 className="hero-title">내 예측 내역</h1>
       </div>

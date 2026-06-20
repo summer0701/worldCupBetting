@@ -9,6 +9,25 @@ const STATUS_LABEL = {
   settled: '정산완료',
 };
 
+const TEAM_FLAGS = {
+  한국: '🇰🇷',
+  대한민국: '🇰🇷',
+  남아공: '🇿🇦',
+  '남아프리카 공화국': '🇿🇦',
+  일본: '🇯🇵',
+  중국: '🇨🇳',
+  미국: '🇺🇸',
+  캐나다: '🇨🇦',
+  멕시코: '🇲🇽',
+  브라질: '🇧🇷',
+  아르헨티나: '🇦🇷',
+  프랑스: '🇫🇷',
+  독일: '🇩🇪',
+  스페인: '🇪🇸',
+  잉글랜드: '🏴',
+  포르투갈: '🇵🇹',
+};
+
 export default function MatchCard({ match, userName, onPredicted }) {
   const [pool, setPool] = useState({ home: 0, draw: 0, away: 0 });
   const [selected, setSelected] = useState('');
@@ -64,6 +83,10 @@ export default function MatchCard({ match, userName, onPredicted }) {
     draw: '무승부',
     away: match.away_team,
   };
+  const teamFlag = {
+    home: TEAM_FLAGS[match.home_team] || '⚽',
+    away: TEAM_FLAGS[match.away_team] || '⚽',
+  };
 
   return (
     <div className={`match-card ${isLocked ? 'locked' : ''}`}>
@@ -79,9 +102,15 @@ export default function MatchCard({ match, userName, onPredicted }) {
       </div>
 
       <div className="match-teams">
-        <span className="team home">{match.home_team}</span>
+        <div className="team-block home">
+          <span className="team-flag">{teamFlag.home}</span>
+          <span className="team">{match.home_team}</span>
+        </div>
         <span className="vs">VS</span>
-        <span className="team away">{match.away_team}</span>
+        <div className="team-block away">
+          <span className="team">{match.away_team}</span>
+          <span className="team-flag">{teamFlag.away}</span>
+        </div>
       </div>
 
       <div className="match-time">
@@ -93,15 +122,12 @@ export default function MatchCard({ match, userName, onPredicted }) {
         })}
       </div>
 
-      <div className="pool-info">
-        <div className="pool-row">
-          <span>전체 풀</span>
-          <strong>{total.toLocaleString()} pts</strong>
-        </div>
-      </div>
-
       {!isLocked && (
         <form onSubmit={handleSubmit} className="predict-form">
+          <div className="predict-title">
+            <span>◉</span>
+            예측 선택
+          </div>
           <div className="choice-buttons">
             {CHOICES.map((c) => {
               const odds = calcOdds(pool, c);
@@ -112,33 +138,42 @@ export default function MatchCard({ match, userName, onPredicted }) {
                   className={`choice-btn choice-${c} ${selected === c ? 'active' : ''}`}
                   onClick={() => setSelected(c)}
                 >
-                  <span className="choice-label">{choiceLabel[c]}</span>
-                  <span className="choice-odds">
-                    {odds !== null ? `${odds.toFixed(2)}배` : '-'}
+                  <span className="choice-label">
+                    <span className="choice-symbol">
+                      {c === 'home' ? teamFlag.home : c === 'away' ? teamFlag.away : '🤝'}
+                    </span>
+                    {choiceLabel[c]}
                   </span>
                   <span className="choice-pool">
                     {(pool[c] || 0).toLocaleString()} pts
                   </span>
+                  {odds !== null && (
+                    <span className="choice-odds">{odds.toFixed(2)}배</span>
+                  )}
                 </button>
               );
             })}
           </div>
 
           <div className="points-input-row">
-            <input
-              type="number"
-              min="1"
-              value={points}
-              onChange={(e) => setPoints(e.target.value)}
-              placeholder="예측 포인트 입력"
-              className="points-input"
-            />
+            <div className="points-input-wrap">
+              <span className="points-icon">▤</span>
+              <input
+                type="number"
+                min="1"
+                value={points}
+                onChange={(e) => setPoints(e.target.value)}
+                placeholder="예측 포인트 입력"
+                className="points-input"
+              />
+              <strong>{points ? `${Number(points).toLocaleString()} pts` : `${total.toLocaleString()} pts`}</strong>
+            </div>
             <button
               type="submit"
               className="submit-btn"
               disabled={submitting || !selected || !points}
             >
-              {submitting ? '제출 중...' : '예측 제출'}
+              {submitting ? '제출 중...' : '예측 제출'} <span>›</span>
             </button>
           </div>
 

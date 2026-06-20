@@ -1,4 +1,4 @@
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2MbNjnGstjgWA_bqfobRUDll3B7ps2mvAt8CYluhTRO3V9TUBQAOsE4mljWBW__Zk/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwETxbSbKZMrogwxV9DNJ4sAQy9Hjcc3wYMioOLdSRix6jetkleeIkXw6Uyo1MaeAYn/exec';
 const APPS_SCRIPT_URL = normalizeAppsScriptUrl(DEFAULT_APPS_SCRIPT_URL);
 let jsonpRequestId = 0;
 

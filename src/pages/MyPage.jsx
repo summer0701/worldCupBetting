@@ -7,16 +7,18 @@ const RESULT_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
 export default function MyPage() {
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '');
   const [inputName, setInputName] = useState(localStorage.getItem('userName') || '');
+  const [userPassword, setUserPassword] = useState(() => sessionStorage.getItem('userPassword') || '');
+  const [inputPassword, setInputPassword] = useState(sessionStorage.getItem('userPassword') || '');
   const [predictions, setPredictions] = useState([]);
   const [userPoints, setUserPoints] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchData = useCallback(async (name) => {
+  const fetchData = useCallback(async (name, password) => {
     setLoading(true);
     setError('');
     try {
-      const predData = await api.getPredictionsByUser(name);
+      const predData = await api.getPredictionsByUser(name, password);
       setPredictions(predData.predictions || []);
       setUserPoints(Number(predData.user?.points || 0));
     } catch (err) {
@@ -27,16 +29,19 @@ export default function MyPage() {
   }, []);
 
   useEffect(() => {
-    if (!userName) return;
-    Promise.resolve().then(() => fetchData(userName));
-  }, [fetchData, userName]);
+    if (!userName || !userPassword) return;
+    Promise.resolve().then(() => fetchData(userName, userPassword));
+  }, [fetchData, userName, userPassword]);
 
   function handleSearch(e) {
     e.preventDefault();
     const name = inputName.trim();
-    if (!name) return;
+    const password = inputPassword.trim();
+    if (!name || !password) return;
     setUserName(name);
+    setUserPassword(password);
     localStorage.setItem('userName', name);
+    sessionStorage.setItem('userPassword', password);
   }
 
   function getPredictionStatus(pred) {
@@ -65,6 +70,13 @@ export default function MyPage() {
             placeholder="사용자 이름을 입력하세요"
             className="user-input"
             maxLength={30}
+          />
+          <input
+            type="password"
+            value={inputPassword}
+            onChange={(e) => setInputPassword(e.target.value)}
+            placeholder="비밀번호를 입력하세요"
+            className="user-input"
           />
           <button type="submit" className="btn-primary">조회</button>
         </form>

@@ -1,7 +1,7 @@
 const SHEETS = {
   matches: ['id', 'home_team', 'away_team', 'starts_at', 'status', 'result', 'settled', 'created_at'],
   predictions: ['id', 'match_id', 'user_name', 'choice', 'points', 'created_at', 'payout', 'settled'],
-  users: ['user_name', 'points', 'updated_at'],
+  users: ['user_name', 'points', 'updated_at', 'password_hash'],
   audit_logs: ['id', 'action', 'payload_json', 'created_at'],
 };
 
@@ -55,6 +55,7 @@ function handleAction(action, payload) {
     settleMatch,
     getUsers,
     getRankings,
+    loginUser,
     grantUserPoints,
   };
 
@@ -180,6 +181,7 @@ function deleteMatch(payload) {
 function submitPrediction(payload) {
   const matchId = requireText(payload.matchId, '경기 ID');
   const userName = normalizeUserName(payload.userName);
+  requireUserPassword(userName, payload.userPassword);
   const choice = requireOneOf(payload.choice, CHOICES, '예측');
   const points = requirePositiveInteger(payload.points, '포인트');
 
@@ -235,6 +237,7 @@ function submitPrediction(payload) {
 
 function getPredictionsByUser(payload) {
   const userName = normalizeUserName(payload.userName);
+  requireUserPassword(userName, payload.userPassword);
   const matchesById = toMap(readRows('matches'), 'id');
 
   const predictions = readRows('predictions')
@@ -427,6 +430,20 @@ function getRankings() {
   return { rankings };
 }
 
+function loginUser(payload) {
+  const userName = normalizeUserName(payload.userName);
+  const user = requireUserPassword(userName, payload.userPassword);
+
+  return {
+    ok: true,
+    user: {
+      user_name: user.user_name,
+      points: Number(user.points) || 0,
+      updated_at: user.updated_at,
+    },
+  };
+}
+
 function grantUserPoints(payload) {
   requireAdmin(payload.adminPassword);
 
@@ -470,11 +487,45 @@ function getOrCreateUser(userName) {
     user_name: userName,
     points: DEFAULT_STARTING_POINTS,
     updated_at: new Date().toISOString(),
+    password_hash: '',
   };
 
   appendRow('users', user);
 
   return user;
+}
+
+function requireUserPassword(userName, userPassword) {
+  const password = requireText(userPassword, '비밀번호');
+  let user = getOrCreateUser(userName);
+  const passwordHash = hashPassword(password);
+
+  if (!user.password_hash) {
+    updateRow('users', 'user_name', userName, {
+      password_hash: passwordHash,
+      updated_at: new Date().toISOString(),
+    });
+    user = findRow('users', 'user_name', userName);
+  }
+
+  if (String(user.password_hash) !== passwordHash) {
+    throw new Error('비밀번호가 올바르지 않습니다.');
+  }
+
+  return user;
+}
+
+function hashPassword(password) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(password),
+    Utilities.Charset.UTF_8
+  );
+
+  return bytes.map((byte) => {
+    const value = byte < 0 ? byte + 256 : byte;
+    return (`0${value.toString(16)}`).slice(-2);
+  }).join('');
 }
 
 function requireAdmin(adminPassword) {

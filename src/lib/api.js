@@ -65,10 +65,12 @@ export const api = {
     call('createMatch', { id: matchId, status, _update: true, adminPassword }),
   updateMatchResult: (matchId, result, adminPassword) =>
     call('updateMatchResult', { matchId, result, adminPassword }),
-  submitPrediction: (matchId, userName, choice, points) =>
-    call('submitPrediction', { matchId, userName, choice, points }),
-  getPredictionsByUser: (userName) =>
-    call('getPredictionsByUser', { userName }),
+  loginUser: (userName, userPassword) =>
+    call('loginUser', { userName, userPassword }),
+  submitPrediction: (matchId, userName, userPassword, choice, points) =>
+    call('submitPrediction', { matchId, userName, userPassword, choice, points }),
+  getPredictionsByUser: (userName, userPassword) =>
+    call('getPredictionsByUser', { userName, userPassword }),
   getMatchPool: (matchId) => call('getMatchPool', { matchId }),
   settleMatch: (matchId, adminPassword) =>
     call('settleMatch', { matchId, adminPassword }),

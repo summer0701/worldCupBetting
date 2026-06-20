@@ -9,18 +9,20 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '');
+  const [userPassword, setUserPassword] = useState(() => sessionStorage.getItem('userPassword') || '');
   const [userNameInput, setUserNameInput] = useState(userName);
+  const [userPasswordInput, setUserPasswordInput] = useState(userPassword);
   const [userPoints, setUserPoints] = useState(null);
 
   useEffect(() => {
     loadMatches();
   }, []);
 
-  const loadUserPoints = useCallback(async (name) => {
-    if (!name) return;
+  const loadUserPoints = useCallback(async (name, password) => {
+    if (!name || !password) return;
 
     try {
-      const data = await api.getPredictionsByUser(name);
+      const data = await api.getPredictionsByUser(name, password);
       setUserPoints(Number(data.user?.points || 0));
     } catch (err) {
       setError(err.message);
@@ -28,10 +30,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (userName) {
-      Promise.resolve().then(() => loadUserPoints(userName));
+    if (userName && userPassword) {
+      Promise.resolve().then(() => loadUserPoints(userName, userPassword));
     }
-  }, [loadUserPoints, userName]);
+  }, [loadUserPoints, userName, userPassword]);
 
   async function loadMatches() {
     setLoading(true);
@@ -47,15 +49,26 @@ export default function HomePage() {
   }
 
   async function refreshHomeData() {
-    await Promise.all([loadMatches(), loadUserPoints(userName)]);
+    await Promise.all([loadMatches(), loadUserPoints(userName, userPassword)]);
   }
 
-  function handleSetUser(e) {
+  async function handleSetUser(e) {
     e.preventDefault();
     const name = userNameInput.trim();
-    if (!name) return;
-    setUserName(name);
-    localStorage.setItem('userName', name);
+    const password = userPasswordInput.trim();
+    if (!name || !password) return;
+    setError('');
+
+    try {
+      const data = await api.loginUser(name, password);
+      setUserName(name);
+      setUserPassword(password);
+      setUserPoints(Number(data.user?.points || 0));
+      localStorage.setItem('userName', name);
+      sessionStorage.setItem('userPassword', password);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   const activeMatches = matches.filter((m) => m.status === 'scheduled');
@@ -89,9 +102,12 @@ export default function HomePage() {
                 className="btn-link"
                 onClick={() => {
                   setUserName('');
+                  setUserPassword('');
                   setUserNameInput('');
+                  setUserPasswordInput('');
                   setUserPoints(null);
                   localStorage.removeItem('userName');
+                  sessionStorage.removeItem('userPassword');
                 }}
               >
                 변경 <span aria-hidden="true">›</span>
@@ -106,6 +122,13 @@ export default function HomePage() {
                 placeholder="사용자 이름을 입력하세요"
                 className="user-input"
                 maxLength={30}
+              />
+              <input
+                type="password"
+                value={userPasswordInput}
+                onChange={(e) => setUserPasswordInput(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                className="user-input"
               />
               <button type="submit" className="btn-primary">확인</button>
             </form>
@@ -133,6 +156,7 @@ export default function HomePage() {
                       key={m.id}
                       match={m}
                       userName={userName}
+                      userPassword={userPassword}
                       userPoints={userPoints}
                       onPredicted={refreshHomeData}
                     />
@@ -156,6 +180,7 @@ export default function HomePage() {
                       key={m.id}
                       match={m}
                       userName={userName}
+                      userPassword={userPassword}
                       userPoints={userPoints}
                       onPredicted={refreshHomeData}
                     />

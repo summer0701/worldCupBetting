@@ -28,7 +28,7 @@ const TEAM_FLAGS = {
   포르투갈: '🇵🇹',
 };
 
-export default function MatchCard({ match, userName, userPoints, onPredicted }) {
+export default function MatchCard({ match, userName, userPassword, userPoints, onPredicted }) {
   const [pool, setPool] = useState({ home: 0, draw: 0, away: 0 });
   const [selected, setSelected] = useState('');
   const [points, setPoints] = useState('');
@@ -54,6 +54,10 @@ export default function MatchCard({ match, userName, userPoints, onPredicted }) 
       setError('먼저 사용자 이름을 입력하세요.');
       return;
     }
+    if (!userPassword) {
+      setError('비밀번호를 입력하세요.');
+      return;
+    }
     if (!selected) {
       setError('예측 결과를 선택하세요.');
       return;
@@ -69,7 +73,7 @@ export default function MatchCard({ match, userName, userPoints, onPredicted }) 
     }
     setSubmitting(true);
     try {
-      await api.submitPrediction(match.id, userName.trim(), selected, pts);
+      await api.submitPrediction(match.id, userName.trim(), userPassword, selected, pts);
       setSuccess('예측이 제출되었습니다!');
       setSelected('');
       setPoints('');

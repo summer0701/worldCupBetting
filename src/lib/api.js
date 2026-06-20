@@ -1,5 +1,5 @@
 const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2MbNjnGstjgWA_bqfobRUDll3B7ps2mvAt8CYluhTRO3V9TUBQAOsE4mljWBW__Zk/exec';
-const APPS_SCRIPT_URL = normalizeAppsScriptUrl(import.meta.env.VITE_APPS_SCRIPT_URL || DEFAULT_APPS_SCRIPT_URL);
+const APPS_SCRIPT_URL = normalizeAppsScriptUrl(DEFAULT_APPS_SCRIPT_URL);
 let jsonpRequestId = 0;
 
 export function normalizeAppsScriptUrl(url) {

@@ -72,4 +72,6 @@ export const api = {
   settleMatch: (matchId, adminPassword) =>
     call('settleMatch', { matchId, adminPassword }),
   getUsers: (adminPassword) => call('getUsers', { adminPassword }),
+  grantUserPoints: (userName, points, adminPassword) =>
+    call('grantUserPoints', { userName, points, adminPassword }),
 };

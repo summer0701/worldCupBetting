@@ -54,6 +54,7 @@ function handleAction(action, payload) {
     getMatchPool,
     settleMatch,
     getUsers,
+    grantUserPoints,
   };
 
   if (!handlers[action]) {
@@ -356,6 +357,38 @@ function getUsers(payload) {
 
   return {
     users: readRows('users').sort((a, b) => Number(b.points) - Number(a.points)),
+  };
+}
+
+function grantUserPoints(payload) {
+  requireAdmin(payload.adminPassword);
+
+  const userName = normalizeUserName(payload.userName);
+  const points = requirePositiveInteger(payload.points, '지급 포인트');
+  const user = findRow('users', 'user_name', userName);
+
+  if (!user) {
+    throw new Error('사용자를 찾을 수 없습니다.');
+  }
+
+  const updatedPoints = Number(user.points) + points;
+
+  updateRow('users', 'user_name', userName, {
+    points: updatedPoints,
+    updated_at: new Date().toISOString(),
+  });
+
+  writeAudit('grantUserPoints', {
+    userName,
+    points,
+    updatedPoints,
+  });
+
+  return {
+    ok: true,
+    userName,
+    grantedPoints: points,
+    points: updatedPoints,
   };
 }
 

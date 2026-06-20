@@ -14,6 +14,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
+  const [grantPoints, setGrantPoints] = useState({});
+  const [grantingUser, setGrantingUser] = useState('');
 
   const [newMatch, setNewMatch] = useState({
     home_team: '',
@@ -144,6 +146,30 @@ export default function AdminPage() {
       loadAll();
     } catch (err) {
       setError(err.message);
+    }
+  }
+
+  async function handleGrantPoints(e, userName) {
+    e.preventDefault();
+    setError('');
+    setMsg('');
+
+    const points = Number(grantPoints[userName]);
+    if (!Number.isInteger(points) || points <= 0) {
+      setError('지급 포인트는 1 이상의 정수로 입력하세요.');
+      return;
+    }
+
+    setGrantingUser(userName);
+    try {
+      const res = await api.grantUserPoints(userName, points, savedPw);
+      setMsg(`${userName}님에게 ${Number(res.grantedPoints).toLocaleString()} pts를 지급했습니다.`);
+      setGrantPoints((current) => ({ ...current, [userName]: '' }));
+      await loadAll();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGrantingUser('');
     }
   }
 
@@ -339,19 +365,46 @@ export default function AdminPage() {
                 <th>사용자</th>
                 <th>포인트</th>
                 <th>최종 업데이트</th>
+                <th>포인트 지급</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u, i) => (
-                <tr key={i}>
+              {users.map((u) => (
+                <tr key={u.user_name}>
                   <td>{u.user_name}</td>
                   <td>{Number(u.points).toLocaleString()} pts</td>
                   <td>{u.updated_at ? new Date(u.updated_at).toLocaleString('ko-KR') : '-'}</td>
+                  <td>
+                    <form
+                      className="grant-points-form"
+                      onSubmit={(e) => handleGrantPoints(e, u.user_name)}
+                    >
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={grantPoints[u.user_name] || ''}
+                        onChange={(e) => setGrantPoints((current) => ({
+                          ...current,
+                          [u.user_name]: e.target.value,
+                        }))}
+                        placeholder="지급 포인트"
+                        aria-label={`${u.user_name} 지급 포인트`}
+                      />
+                      <button
+                        type="submit"
+                        className="btn-grant-points"
+                        disabled={grantingUser === u.user_name}
+                      >
+                        {grantingUser === u.user_name ? '지급 중...' : '지급'}
+                      </button>
+                    </form>
+                  </td>
                 </tr>
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="empty-msg">사용자 없음</td>
+                  <td colSpan={4} className="empty-msg">사용자 없음</td>
                 </tr>
               )}
             </tbody>

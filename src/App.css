@@ -431,6 +431,29 @@ body {
 .users-table th, .users-table td { padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); }
 .users-table th { background: var(--primary-light); color: var(--primary); font-weight: 700; }
 .users-table tr:hover td { background: #f9fafb; }
+.grant-points-form { display: flex; align-items: center; gap: 6px; min-width: 210px; }
+.grant-points-form input {
+  width: 120px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  outline: none;
+}
+.grant-points-form input:focus { border-color: var(--primary); }
+.btn-grant-points {
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-grant-points:hover { background: var(--primary-dark); }
+.btn-grant-points:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ===== Responsive ===== */
 @media (max-width: 640px) {

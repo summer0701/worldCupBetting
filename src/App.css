@@ -499,7 +499,22 @@ body {
   color: #f5d888;
   font-size: 1.2rem;
 }
-.home-page .user-greeting { gap: 22px; font-size: 1rem; }
+.home-page .user-greeting { flex: 1; gap: 22px; font-size: 1rem; }
+.user-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 9px 15px;
+  border: 1px solid #e7dcc2;
+  border-radius: 22px;
+  background: #fffaf0;
+  color: #75613a;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.user-points-icon { color: var(--gold); font-size: 1rem; }
+.user-points strong { color: #a66b05; font-size: 0.9rem; }
 .home-page .btn-link {
   color: var(--primary);
   text-decoration: none;
@@ -756,6 +771,13 @@ body {
   }
   .user-avatar { flex-basis: 34px; width: 34px; height: 34px; margin-right: 10px; }
   .home-page .user-greeting { gap: 10px; font-size: 0.86rem; }
+  .user-points {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+    padding: 7px 10px;
+  }
   .home-page .user-form { gap: 5px; }
   .home-page .user-input { padding: 8px 4px; font-size: 0.86rem; }
   .home-page .btn-primary { min-width: 60px; padding: 8px 11px; }
@@ -789,6 +811,7 @@ body {
   .home-content { width: calc(100% - 16px); }
   .home-page .user-bar { padding-inline: 12px; }
   .home-page .user-greeting { flex-wrap: wrap; row-gap: 3px; }
+  .user-points { font-size: 0.75rem; }
   .home-page .match-card { padding-inline: 10px; }
   .home-page .match-teams { gap: 5px; }
   .team-block { gap: 4px; }

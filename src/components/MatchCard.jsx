@@ -28,7 +28,7 @@ const TEAM_FLAGS = {
   포르투갈: '🇵🇹',
 };
 
-export default function MatchCard({ match, userName, onPredicted }) {
+export default function MatchCard({ match, userName, userPoints, onPredicted }) {
   const [pool, setPool] = useState({ home: 0, draw: 0, away: 0 });
   const [selected, setSelected] = useState('');
   const [points, setPoints] = useState('');
@@ -63,6 +63,10 @@ export default function MatchCard({ match, userName, onPredicted }) {
       setError('포인트를 올바르게 입력하세요.');
       return;
     }
+    if (userPoints !== null && pts > userPoints) {
+      setError(`보유 포인트 ${userPoints.toLocaleString()} pts 이하로 입력하세요.`);
+      return;
+    }
     setSubmitting(true);
     try {
       await api.submitPrediction(match.id, userName.trim(), selected, pts);
@@ -87,6 +91,28 @@ export default function MatchCard({ match, userName, onPredicted }) {
     home: TEAM_FLAGS[match.home_team] || '⚽',
     away: TEAM_FLAGS[match.away_team] || '⚽',
   };
+  const hasEnoughPoints =
+    points && (userPoints === null || Number(points) <= userPoints);
+
+  function handlePointsChange(e) {
+    const nextValue = e.target.value;
+
+    if (!nextValue) {
+      setPoints('');
+      setError('');
+      return;
+    }
+
+    const nextPoints = Number(nextValue);
+    if (userPoints !== null && nextPoints > userPoints) {
+      setPoints(String(userPoints));
+      setError(`최대 ${userPoints.toLocaleString()} pts까지 입력할 수 있습니다.`);
+      return;
+    }
+
+    setPoints(nextValue);
+    setError('');
+  }
 
   return (
     <div className={`match-card ${isLocked ? 'locked' : ''}`}>
@@ -161,17 +187,24 @@ export default function MatchCard({ match, userName, onPredicted }) {
               <input
                 type="number"
                 min="1"
+                max={userPoints ?? undefined}
                 value={points}
-                onChange={(e) => setPoints(e.target.value)}
+                onChange={handlePointsChange}
                 placeholder="예측 포인트 입력"
                 className="points-input"
               />
-              <strong>{points ? `${Number(points).toLocaleString()} pts` : `${total.toLocaleString()} pts`}</strong>
+              <strong>
+                {points
+                  ? `${Number(points).toLocaleString()} pts`
+                  : userPoints === null
+                    ? `${total.toLocaleString()} pts`
+                    : `최대 ${userPoints.toLocaleString()} pts`}
+              </strong>
             </div>
             <button
               type="submit"
               className="submit-btn"
-              disabled={submitting || !selected || !points}
+              disabled={submitting || !selected || !hasEnoughPoints}
             >
               {submitting ? '제출 중...' : '예측 제출'} <span>›</span>
             </button>

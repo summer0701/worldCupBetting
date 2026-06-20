@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import MatchCard from '../components/MatchCard';
 import heroImage from '../assets/worldcup-hero.webp';
@@ -10,10 +10,28 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '');
   const [userNameInput, setUserNameInput] = useState(userName);
+  const [userPoints, setUserPoints] = useState(null);
 
   useEffect(() => {
     loadMatches();
   }, []);
+
+  const loadUserPoints = useCallback(async (name) => {
+    if (!name) return;
+
+    try {
+      const data = await api.getPredictionsByUser(name);
+      setUserPoints(Number(data.user?.points || 0));
+    } catch (err) {
+      setError(err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userName) {
+      Promise.resolve().then(() => loadUserPoints(userName));
+    }
+  }, [loadUserPoints, userName]);
 
   async function loadMatches() {
     setLoading(true);
@@ -26,6 +44,10 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function refreshHomeData() {
+    await Promise.all([loadMatches(), loadUserPoints(userName)]);
   }
 
   function handleSetUser(e) {
@@ -58,11 +80,17 @@ export default function HomePage() {
           {userName ? (
             <div className="user-greeting">
               <span>안녕하세요, <strong>{userName}님!</strong></span>
+              <span className="user-points">
+                <span className="user-points-icon">▤</span>
+                보유 포인트
+                <strong>{userPoints === null ? '확인 중...' : `${userPoints.toLocaleString()} pts`}</strong>
+              </span>
               <button
                 className="btn-link"
                 onClick={() => {
                   setUserName('');
                   setUserNameInput('');
+                  setUserPoints(null);
                   localStorage.removeItem('userName');
                 }}
               >
@@ -105,7 +133,8 @@ export default function HomePage() {
                       key={m.id}
                       match={m}
                       userName={userName}
-                      onPredicted={loadMatches}
+                      userPoints={userPoints}
+                      onPredicted={refreshHomeData}
                     />
                   ))}
                 </div>
@@ -127,7 +156,8 @@ export default function HomePage() {
                       key={m.id}
                       match={m}
                       userName={userName}
-                      onPredicted={loadMatches}
+                      userPoints={userPoints}
+                      onPredicted={refreshHomeData}
                     />
                   ))}
                 </div>

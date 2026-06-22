@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { normalizeLoginCredentials } from '../lib/loginForm';
 
 const CHOICE_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
 const RESULT_LABEL = { home: '홈 승', draw: '무승부', away: '원정 승' };
@@ -35,9 +36,8 @@ export default function MyPage() {
 
   function handleSearch(e) {
     e.preventDefault();
-    const name = inputName.trim();
-    const password = inputPassword.trim();
-    if (!name || !password) return;
+    const { name, password, isComplete } = normalizeLoginCredentials(inputName, inputPassword);
+    if (!isComplete) return;
     setUserName(name);
     setUserPassword(password);
     localStorage.setItem('userName', name);

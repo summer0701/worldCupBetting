@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import { api } from '../lib/api';
+import { normalizeLoginCredentials } from '../lib/loginForm';
 import MatchCard from '../components/MatchCard';
 import heroImage from '../assets/worldcup-hero.webp';
 import heroMobileImage from '../assets/worldcup-hero-mobile.webp';
@@ -13,6 +14,7 @@ export default function HomePage() {
   const [userNameInput, setUserNameInput] = useState(userName);
   const [userPasswordInput, setUserPasswordInput] = useState(userPassword);
   const [userPoints, setUserPoints] = useState(null);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   useEffect(() => {
     loadMatches();
@@ -54,10 +56,10 @@ export default function HomePage() {
 
   async function handleSetUser(e) {
     e.preventDefault();
-    const name = userNameInput.trim();
-    const password = userPasswordInput.trim();
-    if (!name || !password) return;
+    const { name, password, isComplete } = normalizeLoginCredentials(userNameInput, userPasswordInput);
+    if (!isComplete || loginLoading) return;
     setError('');
+    setLoginLoading(true);
 
     try {
       const data = await api.loginUser(name, password);
@@ -68,6 +70,8 @@ export default function HomePage() {
       sessionStorage.setItem('userPassword', password);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoginLoading(false);
     }
   }
 
@@ -130,7 +134,10 @@ export default function HomePage() {
                 placeholder="비밀번호를 입력하세요"
                 className="user-input"
               />
-              <button type="submit" className="btn-primary">확인</button>
+              <button type="submit" className="btn-primary btn-login" disabled={loginLoading}>
+                {loginLoading && <span className="btn-spinner" aria-hidden="true" />}
+                {loginLoading ? '잠시만 기다려 주세요.' : '확인'}
+              </button>
             </form>
           )}
         </div>
